@@ -1,44 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>YOLOv7 Predicted Classes</title>
+    <title>Object Detection Results</title>
 </head>
 <body>
-    <h1>YOLOv7 Predicted Classes</h1>
-    <div id="predictions"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <h1>Object Detection Results</h1>
+    
+    <div id="predictions">
+        <!-- Predictions will be displayed here -->
+    </div>
+    
     <script>
-        $(document).ready(function() {
-            // Poll the server for predicted classes
-            function getPredictions() {
-                $.ajax({
-                    type: 'GET',
-                    url: '/get_predictions',  // Modify this URL as needed
-                    success: function(response) {
-                        displayPredictions(response.predictions);
-                    },
-                    error: function(error) {
-                        console.log('Error:', error);
-                    },
-                    complete: function() {
-                        setTimeout(getPredictions, 3000);  // Poll every 3 seconds
+        const predictionsDiv = document.getElementById('predictions');
+        let currentWord = '';
+        let startTime;
+        var huruf;
+
+        function fetchPredictions() {
+            fetch('/get_predictions')
+            .then(response => response.json())
+            .then(predictionsData => {
+                predictionsDiv.innerHTML = '';  // Clear previous predictions
+                predictionsData.forEach(prediction => {
+                    const classLabel = prediction.class_label;
+                    if (classLabel !== 'NEXT' && classLabel !== 'SPASI' && classLabel !== 'STOP') {
+                        huruf = classLabel;
+                    }
+                    else if (classLabel === 'SPASI') {
+                        huruf = ' ';
+                    }
+                    else if (classLabel === 'STOP') {
+                        const predictionElement = document.createElement('p');
+                        predictionElement.textContent = currentWord;
+                        predictionsDiv.appendChild(predictionElement);
+                        console.log(currentWord);
+                        currentWord = '';
+                        //}
+                    }
+                    else if (classLabel === 'NEXT') {
+                        const predictionElement = document.createElement('p');
+                        predictionElement.textContent = huruf;
+                        predictionsDiv.appendChild(predictionElement);
+                        console.log(huruf);
+                        currentWord += huruf;
                     }
                 });
-            }
+            })
+            .catch(error => console.error('Error:', error));
+        }
 
-            // Display predicted classes
-            function displayPredictions(predictions) {
-                var predictionsDiv = $('#predictions');
-                predictionsDiv.empty();
-                predictionsDiv.append('<h2>Predicted Classes:</h2>');
-                for (var i = 0; i < predictions.length; i++) {
-                    predictionsDiv.append('<p>' + predictions[i] + '</p>');
-                }
-            }
-
-            // Start polling for predictions
-            getPredictions();
-        });
+        // Call fetchPredictions function when the page loads
+        fetchPredictions();
+        setInterval(fetchPredictions, 1000); // Refresh every 3 seconds
     </script>
 </body>
 </html>
