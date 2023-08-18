@@ -1,11 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Object Detection Results</title>
+    <title>SIBI Language Interpreter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename= '/stylesheet.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Poppins:wght@600&display=swap" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="https://devimages-cdn.apple.com/design/resources/download/SF-Pro.dmg"> -->
 </head>
 <body>
     <h1>Object Detection Results</h1>
-    
+
+    <!-- camera -->
+    <video id="cameraFeed" autoplay></video>
+    <script>
+    // Get a reference to the video element
+        const videoElement = document.getElementById("cameraFeed");
+
+        // Get user media (camera) and display it in the video element
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement.srcObject = stream;
+
+                // Apply the mirror effect directly when starting the camera
+                mirrorCamera();
+            } catch (error) {
+                console.error("Error accessing camera:", error);
+            }
+        }
+
+        function mirrorCamera() {
+          videoElement.style.transform = "scaleX(-1)";
+        }
+
+        // Call the function to start the camera feed
+        startCamera();
+    </script>
+
+    <h2>Prompt : </h2>
     <div id="predictions">
         <!-- Predictions will be displayed here -->
     </div>
@@ -35,13 +68,11 @@
                         predictionsDiv.appendChild(predictionElement);
                         console.log(currentWord);
                         currentWord = '';
-                        //}
                     }
                     else if (classLabel === 'NEXT') {
                         const predictionElement = document.createElement('p');
                         predictionElement.textContent = huruf;
                         predictionsDiv.appendChild(predictionElement);
-                        console.log(huruf);
                         currentWord += huruf;
                     }
                 });
