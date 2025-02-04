@@ -2,87 +2,75 @@
 <html>
 <head>
     <title>SIBI Language Interpreter</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename= '/stylesheet.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='stylesheet.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Poppins:wght@600&display=swap" rel="stylesheet">
-    <!-- <link rel="stylesheet" href="https://devimages-cdn.apple.com/design/resources/download/SF-Pro.dmg"> -->
 </head>
 <body>
-    <h1>Object Detection Results</h1>
+    <h1>SIBI Language Interpreter</h1>
 
-    <!-- camera -->
+    <!-- Camera Feed -->
     <video id="cameraFeed" autoplay></video>
     <script>
-    // Get a reference to the video element
         const videoElement = document.getElementById("cameraFeed");
-
-        // Get user media (camera) and display it in the video element
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 videoElement.srcObject = stream;
-
-                // Apply the mirror effect directly when starting the camera
                 mirrorCamera();
             } catch (error) {
                 console.error("Error accessing camera:", error);
             }
         }
-
         function mirrorCamera() {
           videoElement.style.transform = "scaleX(-1)";
         }
-
-        // Call the function to start the camera feed
         startCamera();
     </script>
 
-    <h2>Prompt : </h2>
-    <div id="predictions">
-        <!-- Predictions will be displayed here -->
+    <!-- Chat UI -->
+    <div id="chat-container">
+        <div id="chat-box"></div>
+        <input type="text" id="user-input" placeholder="Type your message..." disabled>
     </div>
     
     <script>
-        const predictionsDiv = document.getElementById('predictions');
+        const chatBox = document.getElementById("chat-box");
         let currentWord = '';
-        let startTime;
-        var huruf;
+        let huruf;
+
+        function appendMessage(text, sender) {
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message", sender);
+            messageDiv.textContent = text;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
 
         function fetchPredictions() {
             fetch('/get_predictions')
             .then(response => response.json())
             .then(predictionsData => {
-                predictionsDiv.innerHTML = '';  // Clear previous predictions
                 predictionsData.forEach(prediction => {
                     const classLabel = prediction.class_label;
                     if (classLabel !== 'NEXT' && classLabel !== 'SPASI' && classLabel !== 'STOP') {
                         huruf = classLabel;
-                    }
-                    else if (classLabel === 'SPASI') {
+                    } else if (classLabel === 'SPASI') {
                         huruf = ' ';
-                    }
-                    else if (classLabel === 'STOP') {
-                        const predictionElement = document.createElement('p');
-                        predictionElement.textContent = currentWord;
-                        predictionsDiv.appendChild(predictionElement);
+                    } else if (classLabel === 'STOP') {
+                        appendMessage(currentWord, 'bot');
                         console.log(currentWord);
                         currentWord = '';
-                    }
-                    else if (classLabel === 'NEXT') {
-                        const predictionElement = document.createElement('p');
-                        predictionElement.textContent = huruf;
-                        predictionsDiv.appendChild(predictionElement);
+                    } else if (classLabel === 'NEXT') {
+                        appendMessage(huruf, 'bot');
                         currentWord += huruf;
                     }
                 });
             })
             .catch(error => console.error('Error:', error));
         }
-
-        // Call fetchPredictions function when the page loads
-        fetchPredictions();
-        setInterval(fetchPredictions, 1000); // Refresh every 3 seconds
+        setInterval(fetchPredictions, 1000);
     </script>
 </body>
 </html>
