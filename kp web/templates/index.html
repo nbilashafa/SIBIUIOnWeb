@@ -32,11 +32,13 @@
     <!-- Chat UI -->
     <div id="chat-container">
         <div id="chat-box"></div>
+        <p id="typing-indicator" class="typing-indicator" style="display: none;">Typing...</p>
         <input type="text" id="user-input" placeholder="Type your message..." disabled>
     </div>
     
     <script>
         const chatBox = document.getElementById("chat-box");
+        const typingIndicator = document.getElementById("typing-indicator");
         let currentWord = '';
         let huruf;
 
@@ -49,9 +51,11 @@
         }
 
         function fetchPredictions() {
+            typingIndicator.style.display = "block"; // Show typing indicator
             fetch('/get_predictions')
             .then(response => response.json())
             .then(predictionsData => {
+                typingIndicator.style.display = "none"; // Hide typing indicator
                 predictionsData.forEach(prediction => {
                     const classLabel = prediction.class_label;
                     if (classLabel !== 'NEXT' && classLabel !== 'SPASI' && classLabel !== 'STOP') {
@@ -68,7 +72,10 @@
                     }
                 });
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                typingIndicator.style.display = "none"; // Hide typing indicator in case of error
+                console.error('Error:', error);
+            });
         }
         setInterval(fetchPredictions, 1000);
     </script>
